@@ -126,14 +126,12 @@
         <div class="w-full lg:w-1/2 flex flex-col items-center">
             <div id="gashapon-machine" class="relative w-72 sm:w-80 bg-red-600 rounded-[2.5rem] p-6 border-8 border-slate-800 shadow-[0_10px_0_0_rgba(15,23,42,1)] flex flex-col items-center transition-all duration-300">
                 
-                <!-- ディスプレイ -->
-                <div class="relative w-full h-48 bg-slate-800 rounded-2xl border-4 border-slate-600 overflow-hidden flex flex-col items-center justify-center shadow-inner p-4 group">
-                    <!-- ★ ここに poke.png を指定 ★ -->
-                    <img id="gashapon-interior-img" src="poke.png" alt="" class="absolute inset-0 w-full h-full object-contain z-0 transition-transform duration-500 group-hover:scale-105" onerror="this.style.display='none';">
-                    
-                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/60 via-slate-800/80 to-slate-900/90 pointer-events-none z-10"></div>
-                    <i class="fa-solid fa-circle-nodes text-5xl text-blue-400/50 mb-2 relative z-20"></i>
-                    <span id="display-text" class="font-pixel text-xl text-green-400 tracking-widest text-center animate-pulse relative z-20">READY...</span>
+                <!-- ディスプレイ (画像のみ表示に変更) -->
+                <div class="relative w-full h-48 bg-slate-800 rounded-2xl border-4 border-slate-600 overflow-hidden flex flex-col items-center justify-center shadow-inner group">
+                    <!-- 設定した画像が枠いっぱいに表示されます -->
+                    <img id="gashapon-interior-img" src="poke.png" alt="" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-500 group-hover:scale-105" onerror="this.style.display='none';">
+                    <!-- プログラムエラー防止用の隠し要素 -->
+                    <span id="display-text" class="hidden"></span>
                 </div>
 
                 <!-- 操作パネル -->
@@ -195,92 +193,95 @@
         </div>
     </main>
 
-    <!-- 結果表示モーダル -->
-    <div id="prize-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex justify-center p-4 z-50 hidden transition-all duration-300 opacity-0 overflow-y-auto">
-        <div class="my-auto w-full max-w-lg bg-white rounded-[2rem] border-4 border-slate-800 shadow-[0_0_40px_rgba(239,68,68,0.3)] relative flex flex-col overflow-hidden mt-8 mb-8">
-            
-            <!-- カードヘッダー -->
-            <div class="bg-red-500 text-white p-4 flex justify-between items-end border-b-4 border-slate-800">
-                <div>
-                    <div id="prize-rarity" class="font-pixel text-yellow-300 text-sm font-bold tracking-widest">No. ???</div>
-                    <h3 id="prize-name" class="text-2xl font-black text-outline text-slate-800 mt-1">CHECKING...</h3>
-                </div>
-                <div id="prize-types" class="flex flex-col gap-1 items-end">
-                    <!-- タイプバッジ -->
-                </div>
-            </div>
-
-            <!-- カードボディ -->
-            <div class="p-5 sm:p-6 space-y-6 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNlMmU4ZjAiIGZpbGwtb3BhY2l0eT0iMC40Ii8+PC9zdmc+')]">
+    <!-- 結果表示モーダル (スクロール可能に改善) -->
+    <div id="prize-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden transition-all duration-300 opacity-0 overflow-y-auto">
+        <!-- flexコンテナを利用し、画面が小さい時は上部から表示してスクロール可能にする -->
+        <div class="min-h-screen px-4 py-8 flex justify-center items-start sm:items-center">
+            <div class="w-full max-w-lg bg-white rounded-[2rem] border-4 border-slate-800 shadow-[0_0_40px_rgba(239,68,68,0.3)] relative flex flex-col overflow-hidden shrink-0">
                 
-                <!-- 画像エリア -->
-                <div class="relative w-full aspect-square max-h-64 bg-slate-50 rounded-2xl border-2 border-slate-200 shadow-inner flex items-center justify-center overflow-hidden group">
-                    <div id="prize-img-loader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-10 fade-transition">
-                        <div class="w-12 h-12 bg-red-500 rounded-full border-4 border-slate-800 flex items-center justify-center animate-bounce">
-                            <div class="w-full h-1 bg-slate-800 absolute"></div>
-                            <div class="w-4 h-4 bg-white border-2 border-slate-800 rounded-full z-10"></div>
-                        </div>
-                        <span id="loading-spinner-text" class="font-pixel text-sm font-bold text-slate-500 mt-4 animate-pulse">図鑑データを取得中...</span>
+                <!-- カードヘッダー -->
+                <div class="bg-red-500 text-white p-4 flex justify-between items-end border-b-4 border-slate-800">
+                    <div>
+                        <div id="prize-rarity" class="font-pixel text-yellow-300 text-sm font-bold tracking-widest">No. ???</div>
+                        <h3 id="prize-name" class="text-2xl font-black text-outline text-slate-800 mt-1">CHECKING...</h3>
                     </div>
-                    <!-- 実際の画像 -->
-                    <img id="prize-img" class="w-full h-full object-contain p-4 relative z-0 opacity-0 transform scale-90 fade-transition drop-shadow-xl" src="" alt="Pokemon Art">
-                </div>
-
-                <!-- 基本データ群（分類・高さ・重さ） -->
-                <div class="grid grid-cols-2 gap-3 text-sm font-bold">
-                    <div class="col-span-2 bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
-                        <span class="text-slate-400" id="label-genus">分類</span>
-                        <span class="text-slate-700 text-base" id="prize-genus-detail">--</span>
-                    </div>
-                    <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
-                        <span class="text-slate-400" id="label-height">高さ</span>
-                        <span class="text-slate-700 text-base" id="prize-height">-- m</span>
-                    </div>
-                    <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
-                        <span class="text-slate-400" id="label-weight">重さ</span>
-                        <span class="text-slate-700 text-base" id="prize-weight">-- kg</span>
+                    <div id="prize-types" class="flex flex-col gap-1 items-end">
+                        <!-- タイプバッジ -->
                     </div>
                 </div>
 
-                <!-- 図鑑説明文（フレーバーテキスト） -->
-                <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm relative">
-                    <span class="text-slate-700 text-sm font-bold leading-relaxed block text-center" id="prize-flavor-text">...</span>
-                </div>
-
-                <!-- 種族値ステータスバー -->
-                <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm space-y-3">
-                    <span class="text-slate-400 text-xs font-bold block mb-2 font-pixel" id="label-stats">種族値</span>
-                    <div id="stats-container" class="space-y-2">
-                        <!-- JSで動的にバーを生成 -->
-                    </div>
-                </div>
-
-                <!-- 特性 -->
-                <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm">
-                    <span class="text-slate-400 text-xs font-bold block mb-1" id="label-abilities">特性</span>
-                    <div id="prize-abilities" class="text-slate-700 font-bold text-sm flex flex-wrap gap-2">
-                        <!-- 特性が入る -->
-                    </div>
-                </div>
-
-                <!-- アクションボタン -->
-                <div class="space-y-3 pt-2">
-                    <button id="btn-share-twitter" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl text-center transition flex items-center justify-center space-x-2 border-b-4 border-slate-950 active:border-b-0 active:translate-y-1">
-                        <i class="fa-brands fa-x-twitter text-lg"></i>
-                        <span id="btn-share-twitter-text">Xに投稿する</span>
-                    </button>
+                <!-- カードボディ -->
+                <div class="p-5 sm:p-6 space-y-6 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNlMmU4ZjAiIGZpbGwtb3BhY2l0eT0iMC40Ii8+PC9zdmc+')]">
                     
-                    <div class="flex gap-3">
-                        <button id="btn-close-prize" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-xl font-bold transition border-2 border-slate-300">
-                            閉じる
-                        </button>
-                        <a id="btn-explorer-link" href="#" target="_blank" rel="noopener noreferrer" class="w-1/2 bg-blue-50 hover:bg-blue-100 text-blue-600 border-2 border-blue-200 py-3 px-4 rounded-xl font-bold transition flex items-center justify-center space-x-1 text-sm">
-                            <i class="fa-solid fa-book-open"></i>
-                            <span id="btn-explorer-link-text">公式図鑑で確認</span>
-                        </a>
+                    <!-- 画像エリア -->
+                    <div class="relative w-full aspect-square max-h-64 bg-slate-50 rounded-2xl border-2 border-slate-200 shadow-inner flex items-center justify-center overflow-hidden group">
+                        <div id="prize-img-loader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-10 fade-transition">
+                            <div class="w-12 h-12 bg-red-500 rounded-full border-4 border-slate-800 flex items-center justify-center animate-bounce">
+                                <div class="w-full h-1 bg-slate-800 absolute"></div>
+                                <div class="w-4 h-4 bg-white border-2 border-slate-800 rounded-full z-10"></div>
+                            </div>
+                            <span id="loading-spinner-text" class="font-pixel text-sm font-bold text-slate-500 mt-4 animate-pulse">図鑑データを取得中...</span>
+                        </div>
+                        <!-- 実際の画像 -->
+                        <img id="prize-img" class="w-full h-full object-contain p-4 relative z-0 opacity-0 transform scale-90 fade-transition drop-shadow-xl" src="" alt="Pokemon Art">
                     </div>
+
+                    <!-- 基本データ群（分類・高さ・重さ） -->
+                    <div class="grid grid-cols-2 gap-3 text-sm font-bold">
+                        <div class="col-span-2 bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
+                            <span class="text-slate-400" id="label-genus">分類</span>
+                            <span class="text-slate-700 text-base" id="prize-genus-detail">--</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
+                            <span class="text-slate-400" id="label-height">高さ</span>
+                            <span class="text-slate-700 text-base" id="prize-height">-- m</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
+                            <span class="text-slate-400" id="label-weight">重さ</span>
+                            <span class="text-slate-700 text-base" id="prize-weight">-- kg</span>
+                        </div>
+                    </div>
+
+                    <!-- 図鑑説明文（フレーバーテキスト） -->
+                    <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm relative">
+                        <span class="text-slate-700 text-sm font-bold leading-relaxed block text-center" id="prize-flavor-text">...</span>
+                    </div>
+
+                    <!-- 種族値ステータスバー -->
+                    <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm space-y-3">
+                        <span class="text-slate-400 text-xs font-bold block mb-2 font-pixel" id="label-stats">種族値</span>
+                        <div id="stats-container" class="space-y-2">
+                            <!-- JSで動的にバーを生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 特性 -->
+                    <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm">
+                        <span class="text-slate-400 text-xs font-bold block mb-1" id="label-abilities">特性</span>
+                        <div id="prize-abilities" class="text-slate-700 font-bold text-sm flex flex-wrap gap-2">
+                            <!-- 特性が入る -->
+                        </div>
+                    </div>
+
+                    <!-- アクションボタン -->
+                    <div class="space-y-3 pt-2">
+                        <button id="btn-share-twitter" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl text-center transition flex items-center justify-center space-x-2 border-b-4 border-slate-950 active:border-b-0 active:translate-y-1">
+                            <i class="fa-brands fa-x-twitter text-lg"></i>
+                            <span id="btn-share-twitter-text">Xに投稿する</span>
+                        </button>
+                        
+                        <div class="flex gap-3">
+                            <button id="btn-close-prize" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-xl font-bold transition border-2 border-slate-300">
+                                閉じる
+                            </button>
+                            <a id="btn-explorer-link" href="#" target="_blank" rel="noopener noreferrer" class="w-1/2 bg-blue-50 hover:bg-blue-100 text-blue-600 border-2 border-blue-200 py-3 px-4 rounded-xl font-bold transition flex items-center justify-center space-x-1 text-sm">
+                                <i class="fa-solid fa-book-open"></i>
+                                <span id="btn-explorer-link-text">公式図鑑で確認</span>
+                            </a>
+                        </div>
+                    </div>
+                    
                 </div>
-                
             </div>
         </div>
     </div>
@@ -383,17 +384,6 @@
             const currentVal = select.value || 'all';
             select.innerHTML = t.opts.map(o => `<option value="${o.val}">${o.text}</option>`).join('');
             select.value = currentVal;
-
-            updateDisplayStateText();
-        }
-
-        function updateDisplayStateText() {
-            const t = TRANSLATIONS[currentLang];
-            let text = t.ready; let colorClass = "text-green-400";
-            if (currentState === STATE.ROLLING) { text = t.spinning; colorClass = "text-blue-400"; } 
-            else if (currentState === STATE.HAS_CAPSULE) { text = t.dispensed; colorClass = "text-yellow-400"; } 
-            document.getElementById('display-text').textContent = text;
-            document.getElementById('display-text').className = `font-pixel text-xl tracking-widest text-center animate-pulse ${colorClass}`;
         }
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -440,14 +430,14 @@
         }
 
         function playGashaponRotation() {
-            currentState = STATE.ROLLING; playAudio('motor'); updateDisplayStateText();
+            currentState = STATE.ROLLING; playAudio('motor');
             const machine = document.getElementById('gashapon-machine');
             machine.classList.add('animate-shake');
             document.getElementById('crank-handle').style.transform = "rotate(720deg)";
             document.getElementById('crank-handle').style.transition = "transform 1.2s cubic-bezier(0.25, 1, 0.5, 1)";
 
             setTimeout(() => {
-                machine.classList.remove('animate-shake'); currentState = STATE.HAS_CAPSULE; updateDisplayStateText(); playAudio('pop');
+                machine.classList.remove('animate-shake'); currentState = STATE.HAS_CAPSULE; playAudio('pop');
                 const cap = document.getElementById('dispensed-capsule');
                 cap.classList.remove('hidden'); cap.classList.add('animate-drop', 'ball-glow');
                 cap.onclick = () => triggerReveal();
@@ -514,7 +504,6 @@
             cap.classList.add('hidden'); cap.classList.remove('animate-drop', 'ball-glow');
             document.getElementById('crank-handle').style.transform = "rotate(0deg)";
             document.getElementById('crank-handle').style.transition = "none";
-            updateDisplayStateText();
 
             try {
                 // PokeAPIからデータ取得
@@ -531,7 +520,7 @@
                 let enName = enNameObj ? enNameObj.name : pokeData.name;
                 let finalName = currentLang === 'en' ? (enName.charAt(0).toUpperCase() + enName.slice(1)) : jpName;
                 
-                // 分類（Genus）の取得を強化
+                // 分類（Genus）
                 let jpGenusObj = speciesData.genera.find(g => g.language.name === "ja-Hrkt") || speciesData.genera.find(g => g.language.name === "ja");
                 let enGenusObj = speciesData.genera.find(g => g.language.name === "en");
                 let jpGenus = jpGenusObj ? jpGenusObj.genus : "";
@@ -576,7 +565,6 @@
                         try {
                             const abRes = await fetch(a.ability.url);
                             const abData = await abRes.json();
-                            // ja-Hrktがない場合（第9世代以降など）は ja を探す
                             const jpObj = abData.names.find(n => n.language.name === 'ja-Hrkt') || abData.names.find(n => n.language.name === 'ja');
                             const jpAb = jpObj ? jpObj.name : abName;
                             const suffix = a.is_hidden ? ' <span class="text-[10px] text-slate-400 font-normal">(夢)</span>' : '';
@@ -695,7 +683,7 @@
             const cap = document.getElementById('dispensed-capsule');
             cap.classList.add('hidden'); cap.classList.remove('animate-drop', 'ball-glow');
             lastWonItemImageUrl = ""; lastWonItemName = "";
-            currentState = STATE.IDLE; updateDisplayStateText();
+            currentState = STATE.IDLE;
         });
 
         // 起動時
