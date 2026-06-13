@@ -126,11 +126,9 @@
         <div class="w-full lg:w-1/2 flex flex-col items-center">
             <div id="gashapon-machine" class="relative w-72 sm:w-80 bg-red-600 rounded-[2.5rem] p-6 border-8 border-slate-800 shadow-[0_10px_0_0_rgba(15,23,42,1)] flex flex-col items-center transition-all duration-300">
                 
-                <!-- ディスプレイ (画像のみ表示に変更) -->
+                <!-- ディスプレイ -->
                 <div class="relative w-full h-48 bg-slate-800 rounded-2xl border-4 border-slate-600 overflow-hidden flex flex-col items-center justify-center shadow-inner group">
-                    <!-- 設定した画像が枠いっぱいに表示されます -->
                     <img id="gashapon-interior-img" src="poke.png" alt="" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-500 group-hover:scale-105" onerror="this.style.display='none';">
-                    <!-- プログラムエラー防止用の隠し要素 -->
                     <span id="display-text" class="hidden"></span>
                 </div>
 
@@ -193,9 +191,8 @@
         </div>
     </main>
 
-    <!-- 結果表示モーダル (スクロール可能に改善) -->
+    <!-- 結果表示モーダル -->
     <div id="prize-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden transition-all duration-300 opacity-0 overflow-y-auto">
-        <!-- flexコンテナを利用し、画面が小さい時は上部から表示してスクロール可能にする -->
         <div class="min-h-screen px-4 py-8 flex justify-center items-start sm:items-center">
             <div class="w-full max-w-lg bg-white rounded-[2rem] border-4 border-slate-800 shadow-[0_0_40px_rgba(239,68,68,0.3)] relative flex flex-col overflow-hidden shrink-0">
                 
@@ -300,7 +297,6 @@
         const TRANSLATIONS = {
             en: {
                 pageTitle: "Pokémon Gacha",
-                ready: "READY...", spinning: "SPINNING...", dispensed: "CAUGHT!",
                 heading: "Pokémon Gacha",
                 desc: "【Infinite encounters unfold within the capsule. Turn the wheel of destiny to catch unseen Pokémon!】<br>Fetching real Pokémon data from PokéAPI, get random Pokémon. You can spin endlessly for completely free.",
                 selectMode: "SELECT REGION", btnPlay: "PLAY GACHA", loading: "LOADING DATA...",
@@ -317,7 +313,6 @@
             },
             jp: {
                 pageTitle: "ポケモン ガシャポン",
-                ready: "準備完了...", spinning: "回転中...", dispensed: "ゲットだぜ！",
                 heading: "ポケモン ガシャポン",
                 desc: "【カプセルの中に広がる無限の出会い。運命のハンドルを回して、まだ見ぬポケモンたちを捕まえよう！】<br>PokeAPIから本物のポケモンデータを引き出し、ランダムでポケモンをゲット。何度でも永久無料で回せます。",
                 selectMode: "出現する地方を選択", btnPlay: "ガチャを回す", loading: "図鑑データを取得中...",
@@ -365,7 +360,7 @@
             document.title = t.pageTitle;
             document.getElementById('header-title').textContent = t.heading;
             document.getElementById('main-heading').textContent = t.heading;
-            document.getElementById('main-desc').innerHTML = t.desc; // 改行を反映するためにinnerHTMLを使用
+            document.getElementById('main-desc').innerHTML = t.desc;
             document.getElementById('label-mode').innerHTML = `<i class="fa-solid fa-map-location-dot mr-1 text-blue-500"></i>${t.selectMode}`;
             document.getElementById('btn-play-text').textContent = t.btnPlay;
             document.getElementById('loading-spinner-text').textContent = t.loading;
@@ -387,6 +382,16 @@
         }
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // ★ ポケモン本物の鳴き声（PokeAPIの音声ファイル）を再生する関数 ★
+        function playPokemonCry(id) {
+            if (!soundEnabled) return;
+            // PokeAPIは最新の鳴き声をogg形式でホスティングしています
+            const cryAudio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
+            cryAudio.volume = 0.5;
+            cryAudio.play().catch(e => console.warn("鳴き声データの再生に失敗しました", e));
+        }
+
         function playAudio(type) {
             if (!soundEnabled) return;
             try {
@@ -395,27 +400,34 @@
                 osc.connect(gain); gain.connect(audioCtx.destination);
 
                 if (type === 'click') {
-                    osc.type = 'square'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-                    gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1);
+                    // GB風 Aボタン音
+                    osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now); osc.stop(now + 0.05);
                 } else if (type === 'motor') {
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 1.2);
-                    gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0.01, now + 1.2);
-                    osc.start(now); osc.stop(now + 1.2);
+                    // 連続スクロール・機械音（カカカカカ）
+                    osc.type = 'square';
+                    for(let i=0; i<10; i++) {
+                        osc.frequency.setValueAtTime(400, now + i*0.1);
+                        gain.gain.setValueAtTime(0.05, now + i*0.1);
+                        gain.gain.setValueAtTime(0, now + i*0.1 + 0.05);
+                    }
+                    osc.start(now); osc.stop(now + 1.0);
                 } else if (type === 'pop') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-                    gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    // 捕まえた時のボールがカチッと鳴る音
+                    osc.type = 'square'; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1);
                 } else if (type === 'success') {
+                    // ポケモンゲット！のファンファーレ風 (ド・ミ・ソ・高いド)
                     osc.type = 'square';
-                    const notes = [392.00, 523.25, 587.33, 659.25, 698.46, 783.99, 1046.50];
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
                     let time = now;
                     notes.forEach((freq, i) => {
                         osc.frequency.setValueAtTime(freq, time);
-                        const dur = i === notes.length - 1 ? 0.6 : 0.12;
-                        time += dur;
+                        time += (i === notes.length - 1) ? 0.4 : 0.1;
                     });
-                    gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0.0, time);
+                    gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0, time);
                     osc.start(now); osc.stop(time);
                 }
             } catch (e) { console.warn("Audio error: ", e); }
@@ -635,7 +647,12 @@
                     lastWonItemImageUrl = imgUrl; lastWonItemName = finalName;
 
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#ef4444', '#ffffff', '#eab308'] });
+                    
+                    // ★ ファンファーレ音 → 少し遅れて本物の鳴き声を再生 ★
                     playAudio('success');
+                    setTimeout(() => {
+                        playPokemonCry(targetId);
+                    }, 600);
                 };
 
                 preloaderImg.onload = finalizeReveal;
