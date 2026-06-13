@@ -92,6 +92,10 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-red-500/20">
 
+    <!-- BGM用オーディオ要素 (op.mp3 と battle.mp3 を用意してください) -->
+    <audio id="bgm-op" src="op.mp3" loop></audio>
+    <audio id="bgm-battle" src="battle.mp3" loop></audio>
+
     <!-- ヘッダー -->
     <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 shadow-md border-b-4 border-slate-800">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -223,7 +227,7 @@
                         <img id="prize-img" class="w-full h-full object-contain p-4 relative z-0 opacity-0 transform scale-90 fade-transition drop-shadow-xl" src="" alt="Pokemon Art">
                     </div>
 
-                    <!-- 基本データ群（分類・高さ・重さ） -->
+                    <!-- 基本データ群 -->
                     <div class="grid grid-cols-2 gap-3 text-sm font-bold">
                         <div class="col-span-2 bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
                             <span class="text-slate-400" id="label-genus">分類</span>
@@ -283,7 +287,6 @@
         </div>
     </div>
 
-    <!-- 翻訳用辞書とロジック -->
     <script>
         const STATE = { IDLE: "idle", ROLLING: "rolling", HAS_CAPSULE: "has_capsule", REVEALED: "revealed" };
         let currentState = STATE.IDLE;
@@ -293,7 +296,21 @@
         let lastWonItemImageUrl = "";
         let lastWonItemName = "";
 
-        // UIテキストの翻訳
+        // ★ BGM管理変数と要素取得 ★
+        const bgmOp = document.getElementById('bgm-op');
+        const bgmBattle = document.getElementById('bgm-battle');
+        let isOpStarted = false;
+
+        // ブラウザの自動再生対策: 初回クリック時にオープニングBGMを再生
+        document.body.addEventListener('click', () => {
+            if (!isOpStarted && soundEnabled) {
+                bgmOp.volume = 0.2; // 音量調整
+                bgmOp.play().catch(e => console.warn("BGM再生ブロック", e));
+                isOpStarted = true;
+            }
+        }, { once: true });
+
+        // UIテキストの翻訳辞書
         const TRANSLATIONS = {
             en: {
                 pageTitle: "Pokémon Gacha",
@@ -383,13 +400,32 @@
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // ★ ポケモン本物の鳴き声（PokeAPIの音声ファイル）を再生する関数 ★
+        // ★ ポケモン本物の鳴き声（PokeAPI）を再生し、終了後に戦闘曲を流す ★
         function playPokemonCry(id) {
             if (!soundEnabled) return;
-            // PokeAPIは最新の鳴き声をogg形式でホスティングしています
             const cryAudio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
             cryAudio.volume = 0.5;
-            cryAudio.play().catch(e => console.warn("鳴き声データの再生に失敗しました", e));
+            
+            // 鳴き声が終了したタイミングで戦闘曲をループ再生開始
+            cryAudio.onended = () => {
+                if (currentState === STATE.REVEALED && soundEnabled) {
+                    bgmBattle.volume = 0.2;
+                    bgmBattle.currentTime = 0;
+                    bgmBattle.play().catch(e => console.warn("戦闘BGM再生エラー", e));
+                }
+            };
+
+            cryAudio.play().catch(e => {
+                console.warn("鳴き声データの再生に失敗しました", e);
+                // エラー時（鳴き声がない等）は、1秒後に戦闘曲を再生
+                setTimeout(() => {
+                    if (currentState === STATE.REVEALED && soundEnabled) {
+                        bgmBattle.volume = 0.2;
+                        bgmBattle.currentTime = 0;
+                        bgmBattle.play().catch(err => console.warn(err));
+                    }
+                }, 1000);
+            });
         }
 
         function playAudio(type) {
@@ -400,12 +436,10 @@
                 osc.connect(gain); gain.connect(audioCtx.destination);
 
                 if (type === 'click') {
-                    // GB風 Aボタン音
                     osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
                     gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
                     osc.start(now); osc.stop(now + 0.05);
                 } else if (type === 'motor') {
-                    // 連続スクロール・機械音（カカカカカ）
                     osc.type = 'square';
                     for(let i=0; i<10; i++) {
                         osc.frequency.setValueAtTime(400, now + i*0.1);
@@ -414,12 +448,10 @@
                     }
                     osc.start(now); osc.stop(now + 1.0);
                 } else if (type === 'pop') {
-                    // 捕まえた時のボールがカチッと鳴る音
                     osc.type = 'square'; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
                     gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1);
                 } else if (type === 'success') {
-                    // ポケモンゲット！のファンファーレ風 (ド・ミ・ソ・高いド)
                     osc.type = 'square';
                     const notes = [523.25, 659.25, 783.99, 1046.50];
                     let time = now;
@@ -433,8 +465,25 @@
             } catch (e) { console.warn("Audio error: ", e); }
         }
 
+        // サウンドボタンのオンオフ処理
+        document.getElementById('sound-toggle').addEventListener('click', () => { 
+            soundEnabled = !soundEnabled; 
+            document.getElementById('sound-icon').className = soundEnabled ? "fa-solid fa-volume-high text-red-500" : "fa-solid fa-volume-xmark text-slate-400"; 
+            
+            // BGMの再生/停止を連動させる
+            if (soundEnabled) {
+                if (currentState === STATE.REVEALED) {
+                    bgmBattle.play().catch(e=>{});
+                } else if (isOpStarted) {
+                    bgmOp.play().catch(e=>{});
+                }
+            } else {
+                bgmOp.pause();
+                bgmBattle.pause();
+            }
+        });
+
         document.getElementById('lang-toggle').addEventListener('click', () => { playAudio('click'); updateLanguage(currentLang === 'en' ? 'jp' : 'en'); });
-        document.getElementById('sound-toggle').addEventListener('click', () => { soundEnabled = !soundEnabled; document.getElementById('sound-icon').className = soundEnabled ? "fa-solid fa-volume-high text-red-500" : "fa-solid fa-volume-xmark text-slate-400"; });
         
         function toggleModal(modal, show) {
             if (show) { modal.classList.remove('hidden'); setTimeout(() => modal.classList.add('opacity-100'), 10); } 
@@ -539,7 +588,7 @@
                 let enGenus = enGenusObj ? enGenusObj.genus : "";
                 let finalGenus = currentLang === 'en' ? enGenus : jpGenus;
 
-                // 図鑑説明文（フレーバーテキスト）最新のものから取得
+                // 図鑑説明文
                 let flavorText = "";
                 const entries = speciesData.flavor_text_entries;
                 for (let i = entries.length - 1; i >= 0; i--) {
@@ -552,7 +601,7 @@
                     }
                 }
                 if (!flavorText) flavorText = currentLang === 'en' ? "No data available." : "データがありません。";
-                flavorText = flavorText.replace(/[\n\f\r]/g, ' '); // 改行等を除去
+                flavorText = flavorText.replace(/[\n\f\r]/g, ' ');
 
                 // タイプ
                 const typesHtml = pokeData.types.map(t => {
@@ -566,7 +615,7 @@
                 const heightM = (pokeData.height / 10).toFixed(1);
                 const weightKg = (pokeData.weight / 10).toFixed(1);
 
-                // 特性（ja-Hrkt と ja の両方をチェックして日本語を確実に取得）
+                // 特性
                 const abilitiesHtmlPromises = pokeData.abilities.map(async (a) => {
                     let abName = a.ability.name.replace('-', ' ');
                     if (currentLang === 'en') {
@@ -588,7 +637,7 @@
                 });
                 const abilitiesHtmlArr = await Promise.all(abilitiesHtmlPromises);
 
-                // 種族値ステータスバー
+                // 種族値
                 const MAX_STAT = 255;
                 const statsHtml = pokeData.stats.map(s => {
                     const statKey = s.stat.name;
@@ -634,7 +683,6 @@
                     const statsContainer = document.getElementById('stats-container');
                     statsContainer.innerHTML = statsHtml;
                     
-                    // バーのアニメーション発火
                     setTimeout(() => {
                         statsContainer.querySelectorAll('.stat-bar-fill').forEach(bar => {
                             bar.style.width = bar.getAttribute('data-width');
@@ -648,7 +696,8 @@
 
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#ef4444', '#ffffff', '#eab308'] });
                     
-                    // ★ ファンファーレ音 → 少し遅れて本物の鳴き声を再生 ★
+                    // ★ オープニング曲を一時停止し、ファンファーレ音 → 本物の鳴き声 → 戦闘曲の順に再生 ★
+                    bgmOp.pause();
                     playAudio('success');
                     setTimeout(() => {
                         playPokemonCry(targetId);
@@ -694,6 +743,7 @@
         document.getElementById('btn-play').addEventListener('click', handleStartGacha);
         document.getElementById('crank-handle').addEventListener('click', () => { if (currentState === STATE.IDLE) handleStartGacha(); });
         
+        // ★ 閉じるボタンを押したときの処理 ★
         document.getElementById('btn-close-prize').addEventListener('click', () => {
             playAudio('click');
             toggleModal(document.getElementById('prize-modal'), false);
@@ -701,6 +751,14 @@
             cap.classList.add('hidden'); cap.classList.remove('animate-drop', 'ball-glow');
             lastWonItemImageUrl = ""; lastWonItemName = "";
             currentState = STATE.IDLE;
+
+            // 戦闘BGMを停止し、オープニングBGMを最初から再開する
+            bgmBattle.pause();
+            bgmBattle.currentTime = 0;
+            if (soundEnabled && isOpStarted) {
+                bgmOp.currentTime = 0; // 曲を最初から流す
+                bgmOp.play().catch(e=>{});
+            }
         });
 
         // 起動時
