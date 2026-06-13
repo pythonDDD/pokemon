@@ -3,18 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pokémon Infinite Gacha</title>
+    <title>ポケモン ガシャポン</title>
     
-    <!-- Open Graph Meta Tags -->
+    <!-- Google Analytics (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PQKF36CZLY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PQKF36CZLY');
+    </script>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Open Graph Meta Tags (OGP) -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Pokémon Infinite Gacha">
-    <meta property="og:description" content="Gotta Catch 'Em All! Spin the gacha and catch random Pokémon completely for free.">
+    <meta property="og:url" content="https://pythonddd.github.io/pokemon/">
+    <meta property="og:title" content="ポケモン ガシャポン">
+    <meta property="og:description" content="運命のハンドルを回す。伝説のポケモンを狙え！カプセルの中に広がる無限の出会い！さあ、運命のハンドルを回そう。まだ見ぬポケモンたちが、キミを待っているぞ！">
+    <meta property="og:image" content="https://pythonddd.github.io/pokemon/ogp.png">
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://pythonddd.github.io/pokemon/">
+    <meta name="twitter:title" content="ポケモン ガシャポン">
+    <meta name="twitter:description" content="運命のハンドルを回す。伝説のポケモンを狙え！カプセルの中に広がる無限の出会い！さあ、運命のハンドルを回そう。まだ見ぬポケモンたちが、キミを待っているぞ！">
+    <meta name="twitter:image" content="https://pythonddd.github.io/pokemon/ogp.png">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: ポップな丸ゴシックとドットフォントを採用 -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;700;900&display=swap" rel="stylesheet">
@@ -24,7 +45,6 @@
     <style>
         body {
             font-family: 'M PLUS Rounded 1c', 'Helvetica Neue', Arial, sans-serif;
-            /* モンスターボール風の背景（上部が赤、下部が白） */
             background: linear-gradient(180deg, #ef4444 0%, #ef4444 40%, #1e293b 40%, #1e293b 42%, #f8fafc 42%, #f8fafc 100%);
             background-attachment: fixed;
         }
@@ -61,13 +81,10 @@
         .fade-transition {
             transition: opacity 0.4s ease-in-out, transform 0.4s ease-out;
         }
-        /* スクロールバーのカスタマイズ */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* ステータスバーのアニメーション用 */
         .stat-bar-fill {
             transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -85,7 +102,7 @@
                 </div>
                 <div>
                     <h1 id="header-title" class="text-xl sm:text-2xl font-black tracking-tight text-slate-800">
-                        POKÉMON GACHA
+                        ポケモン ガシャポン
                     </h1>
                 </div>
             </div>
@@ -110,10 +127,13 @@
             <div id="gashapon-machine" class="relative w-72 sm:w-80 bg-red-600 rounded-[2.5rem] p-6 border-8 border-slate-800 shadow-[0_10px_0_0_rgba(15,23,42,1)] flex flex-col items-center transition-all duration-300">
                 
                 <!-- ディスプレイ -->
-                <div class="relative w-full h-48 bg-slate-800 rounded-2xl border-4 border-slate-600 overflow-hidden flex flex-col items-center justify-center shadow-inner p-4">
-                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-slate-800 to-slate-900 pointer-events-none"></div>
-                    <i class="fa-solid fa-circle-nodes text-5xl text-blue-400/50 mb-2"></i>
-                    <span id="display-text" class="font-pixel text-xl text-green-400 tracking-widest text-center animate-pulse">READY...</span>
+                <div class="relative w-full h-48 bg-slate-800 rounded-2xl border-4 border-slate-600 overflow-hidden flex flex-col items-center justify-center shadow-inner p-4 group">
+                    <!-- メイン設定用の画像コード（デフォルトでgashapon-machine.pngを表示） -->
+                    <img id="gashapon-interior-img" src="gashapon-machine.png" alt="" class="absolute inset-0 w-full h-full object-contain z-0 transition-transform duration-500 group-hover:scale-105" onerror="this.style.display='none';">
+                    
+                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/60 via-slate-800/80 to-slate-900/90 pointer-events-none z-10"></div>
+                    <i class="fa-solid fa-circle-nodes text-5xl text-blue-400/50 mb-2 relative z-20"></i>
+                    <span id="display-text" class="font-pixel text-xl text-green-400 tracking-widest text-center animate-pulse relative z-20">READY...</span>
                 </div>
 
                 <!-- 操作パネル -->
@@ -137,7 +157,6 @@
                 <div class="relative w-full h-24 bg-slate-800 rounded-2xl mt-6 border-4 border-slate-600 shadow-inner overflow-hidden flex justify-center items-center">
                     <div class="w-24 h-8 bg-black/50 rounded-full blur-md absolute bottom-2"></div>
                     
-                    <!-- 出現カプセル（モンスターボール） -->
                     <div id="dispensed-capsule" class="absolute hidden w-16 h-16 rounded-full border-4 border-slate-800 shadow-xl cursor-pointer hover:scale-110 active:scale-95 transition-all duration-150 z-20 overflow-hidden flex items-center justify-center bg-white">
                         <div class="absolute top-0 inset-x-0 h-1/2 bg-red-500 border-b-4 border-slate-800"></div>
                         <div class="absolute w-5 h-5 bg-white border-4 border-slate-800 rounded-full z-10"></div>
@@ -154,10 +173,10 @@
                 
                 <div class="space-y-3 relative z-10">
                     <h2 id="main-heading" class="text-2xl sm:text-3xl font-black tracking-tight text-slate-800 leading-tight">
-                        Pokémon Infinite Gacha
+                        ポケモン　ガシャポン
                     </h2>
                     <p id="main-desc" class="text-sm text-slate-600 leading-relaxed font-bold">
-                        PokéAPIから本物のポケモンデータを引き出し、ランダムでポケモンをゲット！何度でも永久無料で回せます。
+                        運命のハンドルを回す。伝説のポケモンを狙え！カプセルの中に広がる無限の出会い！さあ、運命のハンドルを回そう。まだ見ぬポケモンたちが、キミを待っているぞ！
                     </p>
                 </div>
 
@@ -170,15 +189,14 @@
 
                 <button id="btn-play" class="w-full bg-red-500 hover:bg-red-600 text-white font-black py-4 px-6 rounded-2xl border-b-4 border-red-700 active:border-b-0 active:translate-y-1 transition-all text-lg tracking-wider flex items-center justify-center space-x-2 relative z-10">
                     <i class="fa-solid fa-play"></i>
-                    <span id="btn-play-text">PLAY GACHA</span>
+                    <span id="btn-play-text">ガチャを回す</span>
                 </button>
             </div>
         </div>
     </main>
 
-    <!-- 結果表示モーダル（はみ出し対応・カード型UI） -->
+    <!-- 結果表示モーダル -->
     <div id="prize-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex justify-center p-4 z-50 hidden transition-all duration-300 opacity-0 overflow-y-auto">
-        <!-- モーダルコンテナ (マージンをつけてスクロール可能に) -->
         <div class="my-auto w-full max-w-lg bg-white rounded-[2rem] border-4 border-slate-800 shadow-[0_0_40px_rgba(239,68,68,0.3)] relative flex flex-col overflow-hidden">
             
             <!-- カードヘッダー -->
@@ -189,11 +207,11 @@
                     <div id="prize-genus" class="text-xs font-bold mt-1 opacity-90">?????</div>
                 </div>
                 <div id="prize-types" class="flex flex-col gap-1 items-end">
-                    <!-- タイプバッジが入る -->
+                    <!-- タイプバッジ -->
                 </div>
             </div>
 
-            <!-- カードボディ (スクロール可能なコンテンツエリア) -->
+            <!-- カードボディ -->
             <div class="p-5 sm:p-6 space-y-6 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNlMmU4ZjAiIGZpbGwtb3BhY2l0eT0iMC40Ii8+PC9zdmc+')]">
                 
                 <!-- 画像エリア -->
@@ -203,7 +221,7 @@
                             <div class="w-full h-1 bg-slate-800 absolute"></div>
                             <div class="w-4 h-4 bg-white border-2 border-slate-800 rounded-full z-10"></div>
                         </div>
-                        <span id="loading-spinner-text" class="font-pixel text-sm font-bold text-slate-500 mt-4 animate-pulse">LOADING DATA...</span>
+                        <span id="loading-spinner-text" class="font-pixel text-sm font-bold text-slate-500 mt-4 animate-pulse">図鑑データを取得中...</span>
                     </div>
                     <!-- 実際の画像 -->
                     <img id="prize-img" class="w-full h-full object-contain p-4 relative z-0 opacity-0 transform scale-90 fade-transition drop-shadow-xl" src="" alt="Pokemon Art">
@@ -212,28 +230,33 @@
                 <!-- 基本データ群 -->
                 <div class="grid grid-cols-2 gap-3 text-sm font-bold">
                     <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
-                        <span class="text-slate-400" id="label-height">Height</span>
+                        <span class="text-slate-400" id="label-height">高さ</span>
                         <span class="text-slate-700 text-base" id="prize-height">-- m</span>
                     </div>
                     <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm flex justify-between items-center">
-                        <span class="text-slate-400" id="label-weight">Weight</span>
+                        <span class="text-slate-400" id="label-weight">重さ</span>
                         <span class="text-slate-700 text-base" id="prize-weight">-- kg</span>
                     </div>
                 </div>
 
-                <!-- 特性 -->
-                <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm">
-                    <span class="text-slate-400 text-xs font-bold block mb-1" id="label-abilities">Abilities</span>
-                    <div id="prize-abilities" class="text-slate-700 font-bold text-sm flex flex-wrap gap-2">
-                        <!-- 特性が入る -->
-                    </div>
+                <!-- 図鑑説明文（フレーバーテキスト） -->
+                <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm relative">
+                    <span class="text-slate-700 text-sm font-bold leading-relaxed block text-center" id="prize-flavor-text">...</span>
                 </div>
 
                 <!-- 種族値ステータスバー -->
                 <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm space-y-3">
-                    <span class="text-slate-400 text-xs font-bold block mb-2 font-pixel" id="label-stats">BASE STATS</span>
+                    <span class="text-slate-400 text-xs font-bold block mb-2 font-pixel" id="label-stats">種族値</span>
                     <div id="stats-container" class="space-y-2">
                         <!-- JSで動的にバーを生成 -->
+                    </div>
+                </div>
+
+                <!-- 特性 (シェアボタンの上へ移動) -->
+                <div class="bg-white p-3 rounded-xl border-2 border-slate-100 shadow-sm">
+                    <span class="text-slate-400 text-xs font-bold block mb-1" id="label-abilities">特性</span>
+                    <div id="prize-abilities" class="text-slate-700 font-bold text-sm flex flex-wrap gap-2">
+                        <!-- 特性が入る -->
                     </div>
                 </div>
 
@@ -241,16 +264,16 @@
                 <div class="space-y-3 pt-2">
                     <button id="btn-share-twitter" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl text-center transition flex items-center justify-center space-x-2 border-b-4 border-slate-950 active:border-b-0 active:translate-y-1">
                         <i class="fa-brands fa-x-twitter text-lg"></i>
-                        <span id="btn-share-twitter-text">Share on X (Image Copied!)</span>
+                        <span id="btn-share-twitter-text">Xに投稿する</span>
                     </button>
                     
                     <div class="flex gap-3">
                         <button id="btn-close-prize" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-xl font-bold transition border-2 border-slate-300">
-                            Close
+                            閉じる
                         </button>
                         <a id="btn-explorer-link" href="#" target="_blank" rel="noopener noreferrer" class="w-1/2 bg-blue-50 hover:bg-blue-100 text-blue-600 border-2 border-blue-200 py-3 px-4 rounded-xl font-bold transition flex items-center justify-center space-x-1 text-sm">
                             <i class="fa-solid fa-book-open"></i>
-                            <span id="btn-explorer-link-text">Pokédex</span>
+                            <span id="btn-explorer-link-text">公式図鑑で確認</span>
                         </a>
                     </div>
                 </div>
@@ -272,9 +295,10 @@
         // UIテキストの翻訳
         const TRANSLATIONS = {
             en: {
-                pageTitle: "Pokémon Infinite Gacha",
+                pageTitle: "Pokémon Gacha",
                 ready: "READY...", spinning: "SPINNING...", dispensed: "CAUGHT!",
-                desc: "Spin the gacha to catch random Pokémon from various regions! All data is directly fetched from the official PokéAPI. Enjoy endless free spins!",
+                heading: "Pokémon Gacha",
+                desc: "Spin the wheel of destiny. Aim for Legendary Pokémon! Infinite encounters await within the capsule! Come on, turn the handle. Unseen Pokémon are waiting for you!",
                 selectMode: "SELECT REGION", btnPlay: "PLAY GACHA", loading: "LOADING DATA...",
                 lblHeight: "Height", lblWeight: "Weight", lblAbilities: "Abilities", lblStats: "BASE STATS",
                 shareX: "Share on X", close: "Close", pokedex: "Pokédex",
@@ -288,9 +312,10 @@
                 ]
             },
             jp: {
-                pageTitle: "ポケモン 無限ガチャ",
+                pageTitle: "ポケモン ガシャポン",
                 ready: "準備完了...", spinning: "回転中...", dispensed: "ゲットだぜ！",
-                desc: "PokeAPIから本物のポケモンデータを引き出し、ランダムでポケモンをゲット！何度でも永久無料で回せます。",
+                heading: "ポケモン　ガシャポン",
+                desc: "運命のハンドルを回す。伝説のポケモンを狙え！カプセルの中に広がる無限の出会い！さあ、運命のハンドルを回そう。まだ見ぬポケモンたちが、キミを待っているぞ！",
                 selectMode: "出現する地方を選択", btnPlay: "ガチャを回す", loading: "図鑑データを取得中...",
                 lblHeight: "高さ", lblWeight: "重さ", lblAbilities: "特性", lblStats: "種族値",
                 shareX: "Xに投稿する", close: "閉じる", pokedex: "公式図鑑で確認",
@@ -305,7 +330,6 @@
             }
         };
 
-        // タイプとステータスの辞書
         const TYPE_COLORS = {
             normal: {bg: '#A8A77A', text: '#fff'}, fire: {bg: '#EE8130', text: '#fff'}, water: {bg: '#6390F0', text: '#fff'},
             electric: {bg: '#F7D02C', text: '#000'}, grass: {bg: '#7AC74C', text: '#000'}, ice: {bg: '#96D9D6', text: '#000'},
@@ -335,6 +359,8 @@
             const t = TRANSLATIONS[lang];
             
             document.title = t.pageTitle;
+            document.getElementById('header-title').textContent = t.heading;
+            document.getElementById('main-heading').textContent = t.heading;
             document.getElementById('main-desc').textContent = t.desc;
             document.getElementById('label-mode').innerHTML = `<i class="fa-solid fa-map-location-dot mr-1 text-blue-500"></i>${t.selectMode}`;
             document.getElementById('btn-play-text').textContent = t.btnPlay;
@@ -387,7 +413,6 @@
                     gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1);
                 } else if (type === 'success') {
-                    // ゲットファンファーレ風 (ソ・ド・レ・ミ・ファ・ソ・ド)
                     osc.type = 'square';
                     const notes = [392.00, 523.25, 587.33, 659.25, 698.46, 783.99, 1046.50];
                     let time = now;
@@ -425,7 +450,6 @@
             }, 1200);
         }
 
-        // クリップボードへ画像をコピーする関数（フォールバック付き）
         async function copyImageToClipboard(imgUrl) {
             try {
                 const response = await fetch(imgUrl, { mode: 'cors' });
@@ -470,6 +494,7 @@
             document.getElementById('prize-types').innerHTML = "";
             document.getElementById('prize-height').textContent = "-- m";
             document.getElementById('prize-weight').textContent = "-- kg";
+            document.getElementById('prize-flavor-text').textContent = "...";
             document.getElementById('prize-abilities').innerHTML = "";
             document.getElementById('stats-container').innerHTML = "";
 
@@ -488,15 +513,13 @@
             updateDisplayStateText();
 
             try {
-                // PokéAPI から基本データを取得
+                // PokeAPIからデータ取得
                 const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${targetId}`);
                 const pokeData = await pokeRes.json();
                 
-                // 種族データ（名前、分類）を取得
                 const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${targetId}`);
                 const speciesData = await speciesRes.json();
                 
-                // --- データ加工 ---
                 // 名前
                 let jpNameObj = speciesData.names.find(n => n.language.name === "ja-Hrkt") || speciesData.names.find(n => n.language.name === "ja");
                 let enNameObj = speciesData.names.find(n => n.language.name === "en");
@@ -504,10 +527,25 @@
                 let enName = enNameObj ? enNameObj.name : pokeData.name;
                 let finalName = currentLang === 'en' ? (enName.charAt(0).toUpperCase() + enName.slice(1)) : jpName;
                 
-                // 分類 (genus)
+                // 分類
                 let jpGenus = speciesData.genera.find(g => g.language.name === "ja-Hrkt")?.genus || "";
                 let enGenus = speciesData.genera.find(g => g.language.name === "en")?.genus || "";
                 let finalGenus = currentLang === 'en' ? enGenus : jpGenus;
+
+                // 図鑑説明文（フレーバーテキスト）最新のものから取得
+                let flavorText = "";
+                const entries = speciesData.flavor_text_entries;
+                for (let i = entries.length - 1; i >= 0; i--) {
+                    if (currentLang === 'en' && entries[i].language.name === 'en') {
+                        flavorText = entries[i].flavor_text;
+                        break;
+                    } else if (currentLang === 'jp' && (entries[i].language.name === 'ja-Hrkt' || entries[i].language.name === 'ja')) {
+                        flavorText = entries[i].flavor_text;
+                        break;
+                    }
+                }
+                if (!flavorText) flavorText = currentLang === 'en' ? "No data available." : "データがありません。";
+                flavorText = flavorText.replace(/[\n\f\r]/g, ' '); // 改行等を除去
 
                 // タイプ
                 const typesHtml = pokeData.types.map(t => {
@@ -517,11 +555,11 @@
                     return `<span class="px-2 py-0.5 rounded text-[10px] font-bold shadow-sm" style="background-color:${color.bg}; color:${color.text}; border: 1px solid rgba(0,0,0,0.1)">${displayType}</span>`;
                 }).join('');
 
-                // 高さ・重さ (デシメートル・ヘクトグラムを変換)
+                // 高さ・重さ
                 const heightM = (pokeData.height / 10).toFixed(1);
                 const weightKg = (pokeData.weight / 10).toFixed(1);
 
-                // 特性（日本語化も試みる）
+                // 特性
                 const abilitiesHtmlPromises = pokeData.abilities.map(async (a) => {
                     let abName = a.ability.name.replace('-', ' ');
                     if (currentLang === 'en') {
@@ -540,7 +578,7 @@
                 });
                 const abilitiesHtmlArr = await Promise.all(abilitiesHtmlPromises);
 
-                // ステータスバー生成 (最大値を255とする)
+                // 種族値ステータスバー
                 const MAX_STAT = 255;
                 const statsHtml = pokeData.stats.map(s => {
                     const statKey = s.stat.name;
@@ -580,6 +618,7 @@
                     document.getElementById('prize-types').innerHTML = typesHtml;
                     document.getElementById('prize-height').textContent = `${heightM} m`;
                     document.getElementById('prize-weight').textContent = `${weightKg} kg`;
+                    document.getElementById('prize-flavor-text').textContent = flavorText;
                     document.getElementById('prize-abilities').innerHTML = abilitiesHtmlArr.join('');
                     
                     const statsContainer = document.getElementById('stats-container');
@@ -626,8 +665,8 @@
 
             const siteUrl = window.location.href;
             const tweetText = currentLang === 'en' 
-                ? `I caught "${lastWonItemName}" with the Pokémon Infinite Gacha! 🔴⚪️\n\nPlay for free:`
-                : `ポケモン無限ガチャで「${lastWonItemName}」をゲットしました！🔴⚪️\n\n無料で遊ぶ：`;
+                ? `I caught "${lastWonItemName}" with the Pokémon Gacha! 🔴⚪️\n\nPlay for free:`
+                : `ポケモン ガシャポンで「${lastWonItemName}」をゲットしました！🔴⚪️\n\n無料で遊ぶ：`;
                 
             window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`, '_blank');
         });
